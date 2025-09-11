@@ -15,7 +15,7 @@ class VertexAiLlamaChatModelIT {
 
     private static final String PROJECT_ID = System.getenv("GCP_PROJECT_ID");
     private static final String LOCATION = "us-central1";
-    private static final String MODEL_NAME = "llama-3.1-8b-instruct-maas";
+    private static final String MODEL_NAME = "meta/llama-3.1-8b-instruct-maas";
 
     @Test
     void should_generate_answer() {

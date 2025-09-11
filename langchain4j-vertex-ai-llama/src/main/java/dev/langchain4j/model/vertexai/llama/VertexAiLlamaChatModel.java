@@ -70,7 +70,6 @@ public class VertexAiLlamaChatModel implements ChatModel, Closeable {
         this.client = new VertexAiLlamaClient(
                 ensureNotBlank(builder.project, "project"),
                 ensureNotBlank(builder.location, "location"),
-                ensureNotBlank(builder.modelName, "modelName"),
                 builder.credentials
         );
         this.modelName = builder.modelName;

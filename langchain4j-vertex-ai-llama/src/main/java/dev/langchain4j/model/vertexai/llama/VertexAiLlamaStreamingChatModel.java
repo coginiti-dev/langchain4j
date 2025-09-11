@@ -71,7 +71,6 @@ public class VertexAiLlamaStreamingChatModel implements StreamingChatModel, Clos
         this.client = new VertexAiLlamaClient(
                 ensureNotBlank(builder.project, "project"),
                 ensureNotBlank(builder.location, "location"),
-                ensureNotBlank(builder.modelName, "modelName"),
                 builder.credentials
         );
         this.modelName = builder.modelName;
@@ -122,23 +121,43 @@ public class VertexAiLlamaStreamingChatModel implements StreamingChatModel, Clos
                 logger.debug("Llama request: {}", llamaRequest);
             }
 
-            LlamaResponse llamaResponse = client.generateContent(llamaRequest);
+            client.generateContentStream(
+                llamaRequest,
+                partialResponse -> {
+                    if (partialResponse.getChoices() != null && !partialResponse.getChoices().isEmpty()) {
+                        LlamaResponse.LlamaChoice choice = partialResponse.getChoices().get(0);
+                        if (choice.getMessage() != null && choice.getMessage().getContent() != null) {
+                            handler.onPartialResponse(choice.getMessage().getContent());
+                        }
+                    }
+                },
+                completeResponse -> {
+                    if (logResponses) {
+                        logger.debug("Llama response: {}", completeResponse);
+                    }
 
-            if (logResponses) {
-                logger.debug("Llama response: {}", llamaResponse);
-            }
+                    ChatResponse chatResponse = LlamaResponseMapper.toChatResponse(completeResponse);
 
-            ChatResponse chatResponse = LlamaResponseMapper.toChatResponse(llamaResponse);
+                    ChatModelResponseContext responseContext = new ChatModelResponseContext(
+                            chatResponse,
+                            chatRequest,
+                            provider(),
+                            attributes);
 
-            ChatModelResponseContext responseContext = new ChatModelResponseContext(
-                    chatResponse,
-                    chatRequest,
-                    provider(),
-                    attributes);
+                    notifyListenersOnResponse(responseContext);
+                    handler.onCompleteResponse(chatResponse);
+                },
+                error -> {
+                    ChatModelErrorContext errorContext = new ChatModelErrorContext(
+                            error,
+                            chatRequest,
+                            provider(),
+                            attributes);
 
-            notifyListenersOnResponse(responseContext);
-
-            handler.onCompleteResponse(chatResponse);
+                    notifyListenersOnError(errorContext);
+                    handler.onError(error);
+                }
+            );
 
         } catch (Exception e) {
             ChatModelErrorContext errorContext = new ChatModelErrorContext(

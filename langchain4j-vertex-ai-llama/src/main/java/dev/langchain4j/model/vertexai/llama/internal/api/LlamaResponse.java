@@ -1,11 +1,13 @@
 package dev.langchain4j.model.vertexai.llama.internal.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class LlamaResponse {
@@ -80,9 +82,12 @@ public class LlamaResponse {
                 '}';
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class LlamaChoice {
         private Integer index;
         private LlamaMessage message;
+        private LlamaMessage delta; // For streaming responses
         private String finishReason;
 
         public LlamaChoice() {
@@ -104,6 +109,14 @@ public class LlamaResponse {
             this.message = message;
         }
 
+        public LlamaMessage getDelta() {
+            return delta;
+        }
+
+        public void setDelta(LlamaMessage delta) {
+            this.delta = delta;
+        }
+
         public String getFinishReason() {
             return finishReason;
         }
@@ -117,6 +130,7 @@ public class LlamaResponse {
             return "LlamaChoice{" +
                     "index=" + index +
                     ", message=" + message +
+                    ", delta=" + delta +
                     ", finishReason='" + finishReason + '\'' +
                     '}';
         }
