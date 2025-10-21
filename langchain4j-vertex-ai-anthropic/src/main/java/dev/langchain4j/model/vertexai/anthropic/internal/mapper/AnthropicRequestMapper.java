@@ -255,7 +255,7 @@ public class AnthropicRequestMapper {
                                 && content.text.length() > Constants.SUBSTANTIAL_CONTENT_THRESHOLD);
 
                 if (hasSubstantialContent) {
-                    message.cacheControl = AnthropicCacheControl.ephemeral();
+                    message.content.getLast().cacheControl = AnthropicCacheControl.ephemeral();
                     break; // Only cache one message for now
                 }
             }
